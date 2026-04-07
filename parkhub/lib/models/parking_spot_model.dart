@@ -8,6 +8,11 @@ class ParkingSpotModel {
   final bool isAvailable;
   final int totalSpaces;
   final int availableSpaces;
+  final double distanceKm;
+  final String timeLimit;
+  final String peakTimes;
+  final String offPeakTimes;
+  final String predictedBusyHours;
 
   const ParkingSpotModel({
     required this.id,
@@ -19,6 +24,11 @@ class ParkingSpotModel {
     required this.isAvailable,
     required this.totalSpaces,
     required this.availableSpaces,
+    required this.distanceKm,
+    required this.timeLimit,
+    required this.peakTimes,
+    required this.offPeakTimes,
+    required this.predictedBusyHours,
   });
 
   @override
