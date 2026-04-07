@@ -1,9 +1,35 @@
 import 'package:flutter/material.dart';
+import '../models/parking_spot_model.dart';
+import '../services/parking_service.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/parking_card.dart';
+import 'parking_detail_screen.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<ParkingSpotModel> _searchResults = [];
+
+  void _handleSearch() {
+    final query = _searchController.text;
+    final results = ParkingService.searchByLocation(query);
+
+    setState(() {
+      _searchResults = results;
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,23 +42,29 @@ class SearchScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // TODO: Replace with real TextField + filter chips
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.search, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Text(
-                    'Search location...',
-                    style: TextStyle(color: Colors.grey),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search location...',
+                      prefixIcon: const Icon(Icons.search),
+                      filled: true,
+                      fillColor: Colors.grey.shade200,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _handleSearch,
+                  child: const Text('Search'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             const Align(
@@ -43,12 +75,39 @@ class SearchScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            // TODO: Replace with results from ParkingService.searchByLocation()
-            const ParkingCard(
-              name: 'Result Parking Spot A',
-              address: '10 Sample Ave, Auckland',
-              pricePerHour: 4.00,
-              availableSpaces: 8,
+            Expanded(
+              child: _searchResults.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Enter a destination to search for parking.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: _searchResults.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final spot = _searchResults[index];
+                        return ParkingCard(
+                          name: spot.name,
+                          address: spot.address,
+                          pricePerHour: spot.pricePerHour,
+                          availableSpaces: spot.availableSpaces,
+                          distanceKm: spot.distanceKm,
+                          timeLimit: spot.timeLimit,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ParkingDetailScreen(
+                                  parkingSpot: spot,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),
