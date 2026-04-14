@@ -6,6 +6,8 @@ import '../screens/search_screen.dart';
 import '../screens/map_screen.dart';
 import '../screens/booking_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/favourites_screen.dart'; // NEW
+import '../screens/register_screen.dart'; // NEW
 
 class ParkHubApp extends StatelessWidget {
   const ParkHubApp({super.key});
@@ -27,6 +29,8 @@ class ParkHubApp extends StatelessWidget {
         AppRoutes.map: (_) => const MapScreen(),
         AppRoutes.booking: (_) => const BookingScreen(),
         AppRoutes.profile: (_) => const ProfileScreen(),
+        AppRoutes.favourites: (_) => const FavouritesScreen(), // NEW
+        AppRoutes.register: (_) => const RegisterScreen(), // NEW
       },
     );
   }

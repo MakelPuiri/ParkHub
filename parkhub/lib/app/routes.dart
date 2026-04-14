@@ -1,5 +1,5 @@
 class AppRoutes {
-  AppRoutes._(); // prevent instantiation
+  AppRoutes._();
 
   static const String login = '/';
   static const String home = '/home';
@@ -7,4 +7,6 @@ class AppRoutes {
   static const String map = '/map';
   static const String booking = '/booking';
   static const String profile = '/profile';
+  static const String favourites = '/favourites'; // NEW
+  static const String register = '/register'; // NEW
 }

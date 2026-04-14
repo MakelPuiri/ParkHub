@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app/routes.dart';
 
+/// Tab order: Home (0) | Favourites (1) | Search (2) | Map (3) | Profile (4)
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
 
@@ -11,6 +12,7 @@ class CustomBottomNavBar extends StatelessWidget {
 
     final routes = [
       AppRoutes.home,
+      AppRoutes.favourites, // NEW
       AppRoutes.search,
       AppRoutes.map,
       AppRoutes.profile,
@@ -32,6 +34,12 @@ class CustomBottomNavBar extends StatelessWidget {
           icon: Icon(Icons.home_outlined),
           activeIcon: Icon(Icons.home),
           label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          // NEW
+          icon: Icon(Icons.bookmark_border),
+          activeIcon: Icon(Icons.bookmark),
+          label: 'Favourites',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.search_outlined),

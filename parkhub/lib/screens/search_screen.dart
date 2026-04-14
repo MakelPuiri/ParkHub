@@ -85,10 +85,11 @@ class _SearchScreenState extends State<SearchScreen> {
                     )
                   : ListView.separated(
                       itemCount: _searchResults.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final spot = _searchResults[index];
                         return ParkingCard(
+                          locationId: spot.id,
                           name: spot.name,
                           address: spot.address,
                           pricePerHour: spot.pricePerHour,
@@ -99,9 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ParkingDetailScreen(
-                                  parkingSpot: spot,
-                                ),
+                                builder: (_) => ParkingDetailScreen(spot: spot),
                               ),
                             );
                           },
