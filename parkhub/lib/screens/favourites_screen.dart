@@ -24,11 +24,12 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
 
   Future<void> _load() async {
     final data = await _service.getFavouriteAreas();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _favourites = data;
         _loading = false;
       });
+    }
   }
 
   @override

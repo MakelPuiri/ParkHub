@@ -35,11 +35,12 @@ class _FavouriteButtonState extends State<FavouriteButton> {
 
   Future<void> _checkStatus() async {
     final result = await _service.isFavourite(widget.locationId);
-    if (mounted)
+    if (mounted) {
       setState(() {
         _isFavourite = result;
         _loading = false;
       });
+    }
   }
 
   Future<void> _toggle() async {
