@@ -1,4 +1,5 @@
 import '../models/parking_spot_model.dart';
+import '../models/predicted_availability.dart';
 
 class ParkingService {
   static final List<ParkingSpotModel> _parkingSpots = [
@@ -18,6 +19,7 @@ class ParkingService {
       offPeakTimes: '11:00 AM - 3:00 PM',
       predictedBusyHours: 'Weekdays during commute hours',
     ),
+
     ParkingSpotModel(
       id: '2',
       name: 'SkyCity Car Park',
@@ -79,4 +81,30 @@ class ParkingService {
           spot.address.toLowerCase().contains(lowerQuery);
     }).toList();
   }
+
+  static Future<PredictedAvailability> getPredictedAvailability(String parkingId) async 
+      {
+        // Simulate network delay
+        await Future.delayed(const Duration(seconds: 1));
+
+        // Return mock predicted availability data
+        return PredictedAvailability(
+          lotId: parkingId,
+          timestamp: DateTime.now(),
+          predictedAvailableSpots: 15,
+          totalSpaces: 50,
+          peakTimes: [
+            PeakTime(day: 'Monday', startTime: '8:00 AM', endTime: '10:00 AM'),
+            PeakTime(day: 'Monday', startTime: '4:00 PM', endTime: '6:00 PM'),
+            PeakTime(day: 'Tuesday', startTime: '8:00 AM', endTime: '10:00 AM'),
+            PeakTime(day: 'Tuesday', startTime: '4:00 PM', endTime: '6:00 PM'),
+            // Add more peak times as needed
+          ],
+          offPeakTimes: [
+            PeakTime(day: 'Monday', startTime: '11:00 AM', endTime: '3:00 PM'),
+            PeakTime(day: 'Tuesday', startTime: '11:00 AM', endTime: '3:00 PM'),
+            // Add more off-peak times as needed
+          ],
+        );
+      }
 }
