@@ -1,5 +1,5 @@
 import '../models/parking_spot_model.dart';
-import '../models/predicted_availability.dart';
+import '../services/predicted_availability.dart';
 
 class ParkingService {
   static final List<ParkingSpotModel> _parkingSpots = [

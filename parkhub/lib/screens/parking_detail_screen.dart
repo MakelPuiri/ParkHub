@@ -1,48 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/predicted_availability.dart';
 import '../models/parking_spot_model.dart';
-import '../services/parking_service.dart';
 
-<<<<<<< Updated upstream
 class ParkingDetailScreen extends StatelessWidget {
   final ParkingSpotModel spot;
-=======
-
-class ParkingDetailScreen extends StatefulWidget {
-  final ParkingSpotModel parkingSpot;
->>>>>>> Stashed changes
 
   const ParkingDetailScreen({super.key, required this.spot});
-
-  @override
-
-  State<ParkingDetailScreen> createState() => _ParkingDetailScreenState();
-}
-class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
-
-  PredictedAvailability? _predictedAvailability;
-  bool _isLoading = true;
-
-  @override 
-  void initState(){
-    super.initState()
-    _LoadPredictedAvailability();
-  }
-
-  Future<void> _LoadPredictedAvailability() async {
-    try {
-      final availability = await ParkingService.getPredictedAvailability(widget.parkingSpot.id);
-      setState(() {
-        _predictedAvailability = availability;
-        _isLoading = false;
-      });
-    } catch (e) {
-      // Handle error
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
    @override
   Widget build(BuildContext context) {
@@ -53,53 +15,7 @@ class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-<<<<<<< Updated upstream
             _SpotInfoCard(spot: spot),
-            const SizedBox(height: 16),
-            _DetailRow(
-              icon: Icons.location_on,
-              label: 'Address',
-              value: spot.address,
-=======
-
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    
-                    Text(
-                      widget.parkingSpot.name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(widget.parkingSpot.address),
-                    const SizedBox(height: 12),
-                    Text('Price: \$${widget.parkingSpot.pricePerHour.toStringAsFixed(2)}/hr'),
-                    Text('Available spaces: ${widget.parkingSpot.availableSpaces}/${widget.parkingSpot.totalSpaces}'),
-                    Text('Distance: ${widget.parkingSpot.distanceKm.toStringAsFixed(1)} km'),
-                    Text('Time limit: ${widget.parkingSpot.timeLimit}'),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Parking Demand Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
->>>>>>> Stashed changes
-            ),
             const SizedBox(height: 12),
             _DetailRow(
               icon: Icons.attach_money,
