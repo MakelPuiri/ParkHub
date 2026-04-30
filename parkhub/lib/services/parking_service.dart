@@ -70,6 +70,18 @@ class ParkingService {
     ),
   ];
 
+  static double get overallAvailabilityPercentage {
+    if (_parkingSpots.isEmpty) return 0.0;
+
+    int totalAvailability = 0;
+    int totalSpaces = 0;
+    for (var spot in _parkingSpots) {
+      totalAvailability += spot.availableSpaces;
+      totalSpaces += spot.totalSpaces;
+    }
+    return totalSpaces > 0 ? (totalAvailability / totalSpaces) * 100 : 0.0;
+  }
+
   static List<ParkingSpotModel> searchByLocation(String query) {
     if (query.trim().isEmpty) {
       return [];

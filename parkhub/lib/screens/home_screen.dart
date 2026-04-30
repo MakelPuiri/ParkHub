@@ -81,6 +81,7 @@ class HomeScreen extends StatelessWidget {
                   address: spot.address,
                   pricePerHour: spot.pricePerHour,
                   availableSpaces: spot.availableSpaces,
+                  totalSpaces: spot.totalSpaces,
                   distanceKm: spot.distanceKm,
                   timeLimit: spot.timeLimit,
                 ),

@@ -7,6 +7,7 @@ class ParkingCard extends StatelessWidget {
   final String address;
   final double pricePerHour;
   final int availableSpaces;
+  final int totalSpaces;
   final double distanceKm;
   final String timeLimit;
   final VoidCallback? onTap;
@@ -18,6 +19,7 @@ class ParkingCard extends StatelessWidget {
     required this.address,
     required this.pricePerHour,
     required this.availableSpaces,
+    required this.totalSpaces,
     required this.distanceKm,
     required this.timeLimit,
     this.onTap,
@@ -78,6 +80,13 @@ class ParkingCard extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    Text(
+                      '${totalSpaces > 0 ? ((availableSpaces / totalSpaces) * 100).round() : 0}% available',
+                      style: const TextStyle(
+                        color: Colors.grey, 
+                        fontSize: 13,
+                      ), 
+                      ),
                     const SizedBox(height: 8),
                     Text(
                       'Distance: $distanceKm km',
