@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app/routes.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import '../themes/theme_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -25,6 +26,9 @@ class ProfileScreen extends StatelessWidget {
             ),
             const Text('user@email.com', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
+
+
+            
             ListTile(
               leading: const Icon(Icons.history),
               title: const Text('Booking History'),
@@ -41,6 +45,33 @@ class ProfileScreen extends StatelessWidget {
                 // TODO: Navigate to settings screen
               },
             ),
+
+            ValueListenableBuilder(
+              valueListenable: themeNotifier,
+
+              builder: (context, ThemeMode currentMode, child){
+                final bool isDark = 
+                currentMode == ThemeMode.dark;
+
+                return ListTile(
+                  leading: Icon(
+                    isDark ? Icons.dark_mode : Icons.light_mode,
+                  ),
+
+                  title: const Text('DarkMode'),
+
+                  trailing: Switch(
+                    value: isDark,
+
+                    onChanged: (value) {
+                      themeNotifier.value = 
+                        value ? ThemeMode.dark : ThemeMode.light;
+                    },
+                  ),
+                );
+              },
+            ),
+
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
