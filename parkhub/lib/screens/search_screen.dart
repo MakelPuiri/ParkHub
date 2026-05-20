@@ -15,6 +15,9 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<ParkingSpotModel> _searchResults = [];
+  List<ParkingSpotModel> _filteredSpots = [];
+  double _maxPrice = 20.0;
+
 
   void _handleSearch() {
     final query = _searchController.text;
@@ -22,6 +25,17 @@ class _SearchScreenState extends State<SearchScreen> {
 
     setState(() {
       _searchResults = results;
+      });
+      _applyFilters();
+  }
+
+  void _applyFilters() {
+    setState((){
+      _filteredSpots = _searchResults.where((spot) => 
+      spot.pricePerHour <= _maxPrice && 
+      spot.isAvailable &&
+      spot.availableSpaces > 0)
+      .toList();
     });
   }
 
@@ -67,7 +81,57 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
             const SizedBox(height: 20),
-            const Align(
+
+            if (_searchResults.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Max Price',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                    Text(
+                      '\$${_maxPrice.toStringAsFixed(0)}/hr',
+                      style: const TextStyle(
+                        color: Colors.blue, 
+                        fontWeight: FontWeight.bold,
+                        ),
+                    ),
+                  ],
+                ),
+                Slider(
+                value: _maxPrice, 
+                min: 0, 
+                max: 50, 
+                divisions: 50, 
+                label: '\$${_maxPrice.toStringAsFixed(0)}/hr',
+                onChanged: (value){
+                  _maxPrice = value;
+                  _applyFilters();
+                },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text('\$0', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text('\$50', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ],
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Search Results',
@@ -84,10 +148,10 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     )
                   : ListView.separated(
-                      itemCount: _searchResults.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 12),
+                      itemCount: _filteredSpots.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final spot = _searchResults[index];
+                        final spot = _filteredSpots[index];
                         return ParkingCard(
                           locationId: spot.id,
                           name: spot.name,
