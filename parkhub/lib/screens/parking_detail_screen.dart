@@ -1,22 +1,117 @@
+// lib/screens/parking_detail_screen.dart
+
 import 'package:flutter/material.dart';
+import '../models/parking_spot.dart';
 import '../models/parking_spot_model.dart';
 import '../models/review_model.dart';
 import '../services/review_service.dart';
+import 'booking_screen.dart';
 
 class ParkingDetailScreen extends StatefulWidget {
   final ParkingSpotModel spot;
 
   const ParkingDetailScreen({super.key, required this.spot});
- @override 
- State<ParkingDetailScreen> createState() => _ParkingDetailScreenState();
-}
-class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
 
-   @override
+  @override
+  State<ParkingDetailScreen> createState() => _ParkingDetailScreenState();
+}
+
+class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
+  // Convert ParkingSpotModel → ParkingSpot so BookingScreen can consume it
+  ParkingSpot _toBookable(ParkingSpotModel m) => ParkingSpot(
+    id: m.id,
+    name: m.name,
+    address: m.address,
+    latitude: m.latitude,
+    longitude: m.longitude,
+    pricePerHour: m.pricePerHour,
+    availableSpaces: m.availableSpaces,
+    isCovered: false,
+  );
+
+  void _goToBooking() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BookingScreen(spot: _toBookable(widget.spot)),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final spot = widget.spot;
+    final isFull = spot.availableSpaces == 0;
+
     return Scaffold(
       appBar: AppBar(title: Text(spot.name)),
+      // ── Book Now sticky bottom bar ────────────────────────────────────────
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isFull)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.red.shade600,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'This car park is currently full.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: isFull ? null : _goToBooking,
+                  icon: const Icon(Icons.calendar_month, size: 20),
+                  label: Text(
+                    isFull ? 'Car Park Full' : 'Book Now',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isFull
+                        ? Colors.grey.shade300
+                        : const Color(0xFF1A7F4B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -68,79 +163,83 @@ class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
               value: spot.predictedBusyHours,
             ),
             const SizedBox(height: 20),
-            //Rating
             const Text(
               'User Reviews',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Builder(builder: (context){
-              final avg = ReviewService.getAverageRating(spot.id);
-              final count = ReviewService.getReviewCount(spot.id);
-              return Row(
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 22),
-                  const SizedBox(width: 4),
-                  Text(
-                    avg > 0
-                    ? '${avg.toStringAsFixed(1)} ($count reviews)'
-                    : 'No reviews yet',
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                ],
-              );
-            }), 
-              const SizedBox(height: 16),
-
-              // Reviews List
-              ...ReviewService.getReviewsForParking(spot.id).map((review){
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-                          children: [
-                            Text(review.userName, 
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Row(
-                              children: [
-                                const Icon(Icons.star, 
-                                color: Colors.amber, size: 16),
-                                const SizedBox(width: 2),
-                                Text(review.rating.toStringAsFixed(1)),
-                              ],
-                          ),
-                      ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(review.comment),
-                      ],
+            Builder(
+              builder: (context) {
+                final avg = ReviewService.getAverageRating(spot.id);
+                final count = ReviewService.getReviewCount(spot.id);
+                return Row(
+                  children: [
+                    const Icon(Icons.star, color: Colors.amber, size: 22),
+                    const SizedBox(width: 4),
+                    Text(
+                      avg > 0
+                          ? '${avg.toStringAsFixed(1)} ($count reviews)'
+                          : 'No reviews yet',
+                      style: const TextStyle(fontSize: 15),
                     ),
-                  ),
+                  ],
                 );
-              }),
-              //submit review button
-              const Text('Leave a Review',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              _ReviewForm(
-                parkingId: spot.id,
-                onSubmitted: () => setState(() {}),
-              ),
-            ],
-          ),
+              },
+            ),
+            const SizedBox(height: 16),
+            ...ReviewService.getReviewsForParking(spot.id).map((review) {
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            review.userName,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(review.rating.toStringAsFixed(1)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(review.comment),
+                    ],
+                  ),
+                ),
+              );
+            }),
+            const Text(
+              'Leave a Review',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _ReviewForm(parkingId: spot.id, onSubmitted: () => setState(() {})),
+            const SizedBox(height: 80), // space above sticky button
+          ],
         ),
-      );
+      ),
+    );
   }
 }
 
+// ── Sub-widgets (unchanged from original) ────────────────────────────────────
+
 class _SpotInfoCard extends StatelessWidget {
   final ParkingSpotModel spot;
-
   const _SpotInfoCard({required this.spot});
 
   @override
@@ -191,7 +290,6 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-
   const _DetailRow({
     required this.icon,
     required this.label,
@@ -227,7 +325,6 @@ class _DetailRow extends StatelessWidget {
 class _ReviewForm extends StatefulWidget {
   final String parkingId;
   final VoidCallback onSubmitted;
-
   const _ReviewForm({required this.parkingId, required this.onSubmitted});
 
   @override
@@ -238,59 +335,63 @@ class _ReviewFormState extends State<_ReviewForm> {
   double _rating = 3.0;
   final _commentController = TextEditingController();
 
-  void _submit(){
+  void _submit() {
     if (_commentController.text.trim().isEmpty) return;
-
-    ReviewService.addReview(ReviewModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      parkingId: widget.parkingId,
-      userName: 'You', 
-      rating: _rating,
-      comment: _commentController.text.trim(),
-      createdAt: DateTime.now(),
-    ));
-    _commentController.clear();
-    setState(() => _rating =3.0);
-    widget.onSubmitted();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Review submitted!')),
+    ReviewService.addReview(
+      ReviewModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        parkingId: widget.parkingId,
+        userName: 'You',
+        rating: _rating,
+        comment: _commentController.text.trim(),
+        createdAt: DateTime.now(),
+      ),
     );
+    _commentController.clear();
+    setState(() => _rating = 3.0);
+    widget.onSubmitted();
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Review submitted!')));
   }
+
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      Row(children: [
-        const Icon(Icons.star, color: Colors.amber), 
-        Expanded(child: Slider(
-          value: _rating,
-          min: 1.0,
-          max: 5.0,
-          divisions: 8,
-          label: _rating.toStringAsFixed(1), 
-          onChanged: (v) => setState(() => _rating = v),
-        ), 
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.star, color: Colors.amber),
+            Expanded(
+              child: Slider(
+                value: _rating,
+                min: 1.0,
+                max: 5.0,
+                divisions: 8,
+                label: _rating.toStringAsFixed(1),
+                onChanged: (v) => setState(() => _rating = v),
+              ),
+            ),
+            Text(_rating.toStringAsFixed(1)),
+          ],
         ),
-        Text(_rating.toStringAsFixed(1)), 
+        TextField(
+          controller: _commentController,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Write your review here...',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _submit,
+            child: const Text('Submit Review'),
+          ),
+        ),
       ],
-      ),
-      TextField(
-        controller: _commentController,
-        maxLines: 3,
-        decoration: const InputDecoration(
-          hintText: 'Write your review here...',
-          border: OutlineInputBorder(),
-        ),
-      ),
-      const SizedBox(height: 8),
-      SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _submit,
-          child: const Text('Submit Review'),
-        ),
-      ),
-    ],
     );
   }
 }

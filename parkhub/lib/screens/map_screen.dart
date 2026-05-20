@@ -1,4 +1,5 @@
 // lib/screens/map_screen.dart
+// Sprint 2 — Mock real-time availability (Feature 1) + Book Now navigation (Feature 2)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -6,13 +7,17 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/parking_spot_model.dart';
 import '../models/parking_spot.dart';
+import '../services/parking_service.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import 'booking_screen.dart';
 
 // ---------------------------------------------------------------------------
-// Demo data — Auckland CBD parking spots
+// Sprint 2 mock data — Auckland CBD parking spots
+// NOT const so availableSpaces can be mutated by refreshMockAvailability().
 // ---------------------------------------------------------------------------
-const List<ParkingSpot> _kDemoSpots = [
+List<ParkingSpot> _buildDemoSpots() => [
   ParkingSpot(
     id: '1',
     name: 'CBD Secure Parking',
@@ -55,13 +60,263 @@ const List<ParkingSpot> _kDemoSpots = [
   ),
   ParkingSpot(
     id: '5',
-    name: 'Sky City Parking',
+    name: 'SkyCity Parking',
     address: '71 Federal Street, Auckland',
     latitude: -36.8466,
     longitude: 174.7620,
     pricePerHour: 7.00,
     availableSpaces: 2,
     isCovered: true,
+  ),
+  ParkingSpot(
+    id: '6',
+    name: 'Wynyard Quarter Parking',
+    address: '12 Jellicoe Street, Auckland',
+    latitude: -36.8420,
+    longitude: 174.7590,
+    pricePerHour: 4.50,
+    availableSpaces: 42,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '7',
+    name: 'Viaduct Harbour Parking',
+    address: '85 Customs Street West, Auckland',
+    latitude: -36.8432,
+    longitude: 174.7618,
+    pricePerHour: 7.00,
+    availableSpaces: 3,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '8',
+    name: 'Federal Street Parking',
+    address: '22 Federal Street, Auckland',
+    latitude: -36.8470,
+    longitude: 174.7628,
+    pricePerHour: 5.50,
+    availableSpaces: 14,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '9',
+    name: 'Shortland Street Parking',
+    address: '41 Shortland Street, Auckland',
+    latitude: -36.8462,
+    longitude: 174.7655,
+    pricePerHour: 6.50,
+    availableSpaces: 0,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '10',
+    name: 'Ponsonby Central Parking',
+    address: '136 Ponsonby Road, Auckland',
+    latitude: -36.8530,
+    longitude: 174.7480,
+    pricePerHour: 3.00,
+    availableSpaces: 38,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '11',
+    name: 'Newmarket Park & Ride',
+    address: '3 Teed Street, Newmarket',
+    latitude: -36.8700,
+    longitude: 174.7760,
+    pricePerHour: 2.00,
+    availableSpaces: 85,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '12',
+    name: 'Parnell Village Parking',
+    address: '280 Parnell Road, Auckland',
+    latitude: -36.8560,
+    longitude: 174.7770,
+    pricePerHour: 3.50,
+    availableSpaces: 22,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '13',
+    name: 'Aotea Centre Parking',
+    address: 'Mayoral Drive, Auckland CBD',
+    latitude: -36.8520,
+    longitude: 174.7622,
+    pricePerHour: 5.00,
+    availableSpaces: 19,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '14',
+    name: 'AUT City Campus Parking',
+    address: 'Wakefield Street, Auckland CBD',
+    latitude: -36.8536,
+    longitude: 174.7653,
+    pricePerHour: 4.50,
+    availableSpaces: 21,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '15',
+    name: 'Auckland University Parking',
+    address: 'Princes Street, Auckland CBD',
+    latitude: -36.8507,
+    longitude: 174.7690,
+    pricePerHour: 4.00,
+    availableSpaces: 12,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '16',
+    name: 'Hobson Street Parking',
+    address: 'Hobson Street, Auckland CBD',
+    latitude: -36.8498,
+    longitude: 174.7588,
+    pricePerHour: 3.80,
+    availableSpaces: 28,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '17',
+    name: 'Nelson Street Parking',
+    address: 'Nelson Street, Auckland CBD',
+    latitude: -36.8509,
+    longitude: 174.7564,
+    pricePerHour: 3.20,
+    availableSpaces: 44,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '18',
+    name: 'Cook Street Parking',
+    address: 'Cook Street, Auckland CBD',
+    latitude: -36.8527,
+    longitude: 174.7582,
+    pricePerHour: 3.70,
+    availableSpaces: 9,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '19',
+    name: 'Fanshawe Street Parking',
+    address: 'Fanshawe Street, Auckland CBD',
+    latitude: -36.8450,
+    longitude: 174.7592,
+    pricePerHour: 5.20,
+    availableSpaces: 33,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '20',
+    name: 'Auckland Hospital Parking',
+    address: 'Park Road, Grafton',
+    latitude: -36.8590,
+    longitude: 174.7685,
+    pricePerHour: 4.80,
+    availableSpaces: 16,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '21',
+    name: 'Grafton Bridge Parking',
+    address: 'Grafton Road, Auckland',
+    latitude: -36.8563,
+    longitude: 174.7669,
+    pricePerHour: 3.90,
+    availableSpaces: 7,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '22',
+    name: 'Myers Park Parking',
+    address: 'Greys Avenue, Auckland CBD',
+    latitude: -36.8550,
+    longitude: 174.7614,
+    pricePerHour: 3.00,
+    availableSpaces: 15,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '23',
+    name: 'Eden Terrace Parking',
+    address: 'New North Road, Eden Terrace',
+    latitude: -36.8662,
+    longitude: 174.7581,
+    pricePerHour: 2.80,
+    availableSpaces: 40,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '24',
+    name: 'Freemans Bay Parking',
+    address: 'Wellington Street, Freemans Bay',
+    latitude: -36.8500,
+    longitude: 174.7522,
+    pricePerHour: 3.30,
+    availableSpaces: 24,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '25',
+    name: 'Sale Street Parking',
+    address: 'Sale Street, Auckland CBD',
+    latitude: -36.8469,
+    longitude: 174.7550,
+    pricePerHour: 4.20,
+    availableSpaces: 11,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '26',
+    name: 'Quay Street Parking',
+    address: 'Quay Street, Auckland CBD',
+    latitude: -36.8431,
+    longitude: 174.7662,
+    pricePerHour: 6.20,
+    availableSpaces: 31,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '27',
+    name: 'Ferry Terminal Parking',
+    address: '99 Quay Street, Auckland CBD',
+    latitude: -36.8419,
+    longitude: 174.7683,
+    pricePerHour: 6.80,
+    availableSpaces: 5,
+    isCovered: true,
+  ),
+  ParkingSpot(
+    id: '28',
+    name: 'Spark Arena Parking',
+    address: 'Mahuhu Crescent, Auckland',
+    latitude: -36.8471,
+    longitude: 174.7767,
+    pricePerHour: 5.80,
+    availableSpaces: 50,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '29',
+    name: 'Mount Eden Station Parking',
+    address: 'Mount Eden Road, Auckland',
+    latitude: -36.8668,
+    longitude: 174.7616,
+    pricePerHour: 2.50,
+    availableSpaces: 36,
+    isCovered: false,
+  ),
+  ParkingSpot(
+    id: '30',
+    name: 'Kingsland Parking',
+    address: 'New North Road, Kingsland',
+    latitude: -36.8715,
+    longitude: 174.7460,
+    pricePerHour: 2.20,
+    availableSpaces: 18,
+    isCovered: false,
   ),
 ];
 
@@ -86,14 +341,20 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _currentLocation;
   bool _isLoading = true;
 
+  // Sprint 2 — mutable spot list managed in state so refresh rebuilds markers
+  late List<ParkingSpot> _allSpots;
+
   // Filters
   final Set<_Filter> _activeFilters = {};
 
   // Computed / visible spots (after filter)
-  List<ParkingSpot> _visibleSpots = List.of(_kDemoSpots);
+  List<ParkingSpot> _visibleSpots = [];
 
   // Selected spot for the bottom info card
   ParkingSpot? _selectedSpot;
+
+  // Tracks when we last refreshed (shown in detail card)
+  String _lastUpdated = 'Just now';
 
   // -------------------------------------------------------------------------
   // Lifecycle
@@ -101,7 +362,12 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _getLocation();
+    _allSpots = _buildDemoSpots();
+    _visibleSpots = List.of(_allSpots);
+
+    // Auckland CBD only — do not ask for user's live location.
+    _currentLocation = const LatLng(-36.8485, 174.7633);
+    _isLoading = false;
   }
 
   @override
@@ -143,6 +409,25 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // -------------------------------------------------------------------------
+  // Sprint 2 — Mock refresh
+  // -------------------------------------------------------------------------
+  void _refreshAvailability() {
+    ParkingService.refreshMockAvailability(_allSpots);
+    _applyFilters(); // re-filter in case "Available Now" is active
+    setState(() {
+      _lastUpdated = 'Just now';
+      // Keep the selected spot reference up to date
+      if (_selectedSpot != null) {
+        _selectedSpot = _allSpots.firstWhere(
+          (s) => s.id == _selectedSpot!.id,
+          orElse: () => _selectedSpot!,
+        );
+      }
+    });
+    _showMessage('Mock availability updated');
+  }
+
+  // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
   double _distanceKm(ParkingSpot spot) {
@@ -157,7 +442,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _applyFilters() {
-    List<ParkingSpot> result = List.of(_kDemoSpots);
+    List<ParkingSpot> result = List.of(_allSpots);
 
     if (_activeFilters.contains(_Filter.available)) {
       result = result.where((s) => s.availableSpaces > 0).toList();
@@ -204,8 +489,16 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // Sprint 2 — navigate to the booking screen passing the selected spot
+  void _goToBooking(ParkingSpot spot) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => BookingScreen(spot: spot)),
+    );
+  }
+
   // -------------------------------------------------------------------------
-  // Markers
+  // Markers — Sprint 2: colour based on availability
   // -------------------------------------------------------------------------
   List<Marker> _buildMarkers() {
     final markers = <Marker>[];
@@ -246,10 +539,10 @@ class _MapScreenState extends State<MapScreen> {
       );
     }
 
-    // Parking spot markers
+    // Parking spot markers — colour driven by getAvailabilityColor()
     for (final spot in _visibleSpots) {
       final isSelected = _selectedSpot?.id == spot.id;
-      final isLow = spot.availableSpaces <= 3;
+      final markerColor = spot.getAvailabilityColor();
 
       markers.add(
         Marker(
@@ -266,7 +559,7 @@ class _MapScreenState extends State<MapScreen> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
-                color: isLow ? Colors.orange.shade600 : const Color(0xFF1A7F4B),
+                color: markerColor,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: Colors.white,
@@ -274,9 +567,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (isLow ? Colors.orange : Colors.green).withOpacity(
-                      0.35,
-                    ),
+                    color: markerColor.withOpacity(0.4),
                     blurRadius: isSelected ? 14 : 8,
                     offset: const Offset(0, 3),
                   ),
@@ -415,7 +706,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Bottom info card overlay (ambient / no spot selected)
+  // Bottom ambient card (no spot selected)
   Widget _buildAmbientCard() {
     return Positioned(
       bottom: 96,
@@ -461,7 +752,15 @@ class _MapScreenState extends State<MapScreen> {
                 ],
               ),
               const Spacer(),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              // Sprint 2 — Refresh button in ambient card
+              TextButton.icon(
+                onPressed: _refreshAvailability,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Refresh', style: TextStyle(fontSize: 13)),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF1A7F4B),
+                ),
+              ),
             ],
           ),
         ),
@@ -469,10 +768,43 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Bottom detail card (when a spot is selected)
+  // Sprint 2 — Status badge widget
+  Widget _statusBadge(String status, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            status,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Sprint 2 — Full detail card with availability status, last updated, Book Now
   Widget _buildDetailCard(ParkingSpot spot) {
     final distance = _distanceKm(spot);
-    final isLow = spot.availableSpaces <= 3;
+    final status = spot.getAvailabilityStatus();
+    final statusColor = spot.getAvailabilityColor();
+    final isFull = spot.availableSpaces == 0;
 
     return Positioned(
       bottom: 88,
@@ -511,12 +843,12 @@ class _MapScreenState extends State<MapScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1A7F4B).withOpacity(0.1),
+                            color: statusColor.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.local_parking,
-                            color: Color(0xFF1A7F4B),
+                            color: statusColor,
                             size: 20,
                           ),
                         ),
@@ -553,7 +885,62 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 12),
+
+                    // Sprint 2 — Status row: badge + last updated
+                    Row(
+                      children: [
+                        _statusBadge(status, statusColor),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.access_time,
+                          size: 13,
+                          color: Colors.grey.shade500,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'Last updated: $_lastUpdated',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                        const Spacer(),
+                        // Inline refresh button
+                        GestureDetector(
+                          onTap: _refreshAvailability,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A7F4B).withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.refresh,
+                                  size: 13,
+                                  color: Color(0xFF1A7F4B),
+                                ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'Refresh',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF1A7F4B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
 
                     // Info tiles
                     Row(
@@ -569,11 +956,9 @@ class _MapScreenState extends State<MapScreen> {
                         _infoTile(
                           Icons.local_parking,
                           'Spaces',
-                          '${spot.availableSpaces}',
-                          isLow ? Colors.orange.shade50 : Colors.green.shade50,
-                          isLow
-                              ? Colors.orange.shade700
-                              : const Color(0xFF1A7F4B),
+                          isFull ? 'Full' : '${spot.availableSpaces}',
+                          statusColor.withOpacity(0.1),
+                          statusColor,
                         ),
                         const SizedBox(width: 8),
                         _infoTile(
@@ -595,7 +980,42 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+
+                    // Sprint 2 — Full warning banner
+                    if (isFull) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red.shade600,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'This car park is currently full.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.red.shade700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 14),
 
                     // Action buttons
                     Row(
@@ -621,15 +1041,15 @@ class _MapScreenState extends State<MapScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() => _selectedSpot = null);
-                              _showMessage('Booking ${spot.name}…');
-                            },
+                            // Sprint 2 — disable Book Now when full
+                            onPressed: isFull ? null : () => _goToBooking(spot),
                             icon: const Icon(Icons.calendar_month, size: 18),
-                            label: const Text('Book Now'),
+                            label: Text(isFull ? 'Full' : 'Book Now'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 13),
-                              backgroundColor: const Color(0xFF1A7F4B),
+                              backgroundColor: isFull
+                                  ? Colors.grey.shade300
+                                  : const Color(0xFF1A7F4B),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -701,7 +1121,6 @@ class _MapScreenState extends State<MapScreen> {
     const aucklandCbd = LatLng(-36.8485, 174.7633);
 
     return Scaffold(
-      // No AppBar — full screen map like Google Maps
       extendBodyBehindAppBar: true,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -711,7 +1130,7 @@ class _MapScreenState extends State<MapScreen> {
                 FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: _currentLocation ?? aucklandCbd,
+                    initialCenter: aucklandCbd,
                     initialZoom: 14.5,
                     onTap: (_, __) => setState(() => _selectedSpot = null),
                   ),
@@ -733,9 +1152,10 @@ class _MapScreenState extends State<MapScreen> {
                 _buildFilterChips(),
 
                 // ── My location FAB ──────────────────────────────────────────
+                // ── Auckland CBD location FAB ──────────────────────────────────────────
                 Positioned(
                   right: 14,
-                  bottom: _selectedSpot != null ? 380 : 160,
+                  bottom: _selectedSpot != null ? 420 : 160,
                   child: FloatingActionButton(
                     heroTag: 'location_fab',
                     mini: true,
@@ -743,11 +1163,10 @@ class _MapScreenState extends State<MapScreen> {
                     foregroundColor: const Color(0xFF1A7F4B),
                     elevation: 4,
                     onPressed: () {
-                      if (_currentLocation != null) {
-                        _mapController.move(_currentLocation!, 14.5);
-                      } else {
-                        _getLocation();
-                      }
+                      _mapController.move(
+                        const LatLng(-36.8485, 174.7633),
+                        14.5,
+                      );
                     },
                     child: const Icon(Icons.my_location, size: 20),
                   ),
