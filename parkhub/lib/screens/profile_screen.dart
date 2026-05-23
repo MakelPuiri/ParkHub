@@ -27,8 +27,15 @@ class ProfileScreen extends StatelessWidget {
             const Text('user@email.com', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
 
-
-            
+            // Navigate to My Vehicles screen
+            ListTile(
+              leading: const Icon(Icons.directions_car),
+              title: const Text('My Vehicles'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.vehicles);
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.history),
               title: const Text('Booking History'),
@@ -45,33 +52,25 @@ class ProfileScreen extends StatelessWidget {
                 // TODO: Navigate to settings screen
               },
             ),
-
             ValueListenableBuilder(
               valueListenable: themeNotifier,
-
-              builder: (context, ThemeMode currentMode, child){
-                final bool isDark = 
-                currentMode == ThemeMode.dark;
-
+              builder: (context, ThemeMode currentMode, child) {
+                final bool isDark = currentMode == ThemeMode.dark;
                 return ListTile(
                   leading: Icon(
                     isDark ? Icons.dark_mode : Icons.light_mode,
                   ),
-
-                  title: const Text('DarkMode'),
-
+                  title: const Text('Dark Mode'),
                   trailing: Switch(
                     value: isDark,
-
                     onChanged: (value) {
-                      themeNotifier.value = 
-                        value ? ThemeMode.dark : ThemeMode.light;
+                      themeNotifier.value =
+                          value ? ThemeMode.dark : ThemeMode.light;
                     },
                   ),
                 );
               },
             ),
-
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),

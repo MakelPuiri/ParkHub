@@ -125,6 +125,8 @@ class AuthService {
     return AuthResult(success: true, message: 'Welcome back!', user: user);
   }
 
+  // ── Logout ───────────────────────────────────────────────────────────────
+
   Future<void> logout() async {
     _currentUser = null;
   }

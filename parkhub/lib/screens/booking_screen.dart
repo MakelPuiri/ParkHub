@@ -1,11 +1,10 @@
-// lib/screens/booking_screen.dart
-// Sprint 2 — Mock in-app parking payment flow (Feature 2)
-// NOTE: This is a MOCK payment screen for Sprint 2 MVP demonstration.
-//       No real payment processing is performed.
 
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/parking_spot.dart';
+import '../models/vehicle_model.dart';
+import '../services/vehicle_service.dart';
+import '../services/auth_service.dart';
 
 // ---------------------------------------------------------------------------
 // BookingScreen
@@ -29,6 +28,11 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isProcessing = false;
   bool _paymentSuccess = false;
   late String _referenceNumber;
+
+  // Vehicle selection
+  VehicleModel? _selectedVehicle;
+  final VehicleService _vehicleService = VehicleService();
+  final String _userId = AuthService().getCurrentUser()?.id ?? '';
 
   @override
   void initState() {
@@ -64,6 +68,9 @@ class _BookingScreenState extends State<BookingScreen> {
     final spot = widget.spot;
     final statusColor = spot.getAvailabilityColor();
     final status = spot.getAvailabilityStatus();
+
+    // Get vehicles for current user
+    final vehicles = _vehicleService.getUserVehicles(_userId);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -158,6 +165,65 @@ class _BookingScreenState extends State<BookingScreen> {
               ],
             ),
           ),
+
+          const SizedBox(height: 24),
+
+          // ── Vehicle selector ─────────────────────────────────────────────
+          const Text(
+            'Select Vehicle',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          vehicles.isEmpty
+              ? Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.orange.shade700),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'No vehicles added yet. Add one in your Profile.',
+                          style: TextStyle(color: Colors.orange.shade800),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<VehicleModel>(
+                      value: _selectedVehicle,
+                      isExpanded: true,
+                      hint: const Text('Choose your vehicle'),
+                      items: vehicles
+                          .map((v) => DropdownMenuItem(
+                                value: v,
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.directions_car,
+                                        size: 18, color: Color(0xFF1A7F4B)),
+                                    const SizedBox(width: 8),
+                                    Text('${v.label} — ${v.plateNumber}'),
+                                  ],
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedVehicle = v),
+                    ),
+                  ),
+                ),
 
           const SizedBox(height: 24),
 
@@ -404,6 +470,15 @@ class _BookingScreenState extends State<BookingScreen> {
                     Icons.access_time,
                     'Duration',
                     '$_selectedDuration ${_selectedDuration == 1 ? "hour" : "hours"}',
+                  ),
+                  const Divider(height: 20),
+                  // ── Selected vehicle shown on confirmation ───────────────
+                  _confirmRow(
+                    Icons.directions_car,
+                    'Vehicle',
+                    _selectedVehicle != null
+                        ? '${_selectedVehicle!.label} — ${_selectedVehicle!.plateNumber}'
+                        : 'No vehicle selected',
                   ),
                   const Divider(height: 20),
                   _confirmRow(
