@@ -17,6 +17,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<ParkingSpotModel> _searchResults = [];
   List<ParkingSpotModel> _filteredSpots = [];
   double _maxPrice = 20.0;
+  bool _showEvOnly = false;
 
   void _handleSearch() {
     final query = _searchController.text;
@@ -28,13 +29,14 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _applyFilters() {
-    // Filter spots by max price, availability and available spaces
+    // Filter spots by max price, availability, available spaces and EV charging
     setState(() {
       _filteredSpots = _searchResults
           .where((spot) =>
               spot.pricePerHour <= _maxPrice &&
               spot.isAvailable &&
-              spot.availableSpaces > 0)
+              spot.availableSpaces > 0 &&
+              (!_showEvOnly || spot.hasEvCharging))
           .toList();
     });
   }
@@ -132,6 +134,20 @@ class _SearchScreenState extends State<SearchScreen> {
                         Text('\$50', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
+                    const SizedBox(height: 10),
+                    FilterChip(
+                      label: const Text('EV Charging Only'),
+                      avatar: const Icon(Icons.electric_bolt, size: 18),
+                      selected: _showEvOnly,
+                      onSelected: (selected) {
+                        setState(() {
+                          _showEvOnly = selected;
+                        });
+                        _applyFilters();
+                      },
+                      selectedColor: Colors.green.shade100,
+                      checkmarkColor: Colors.green.shade800,
+                    ),
                   ],
                 ),
               ),
@@ -179,6 +195,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               totalSpaces: spot.totalSpaces,
                               distanceKm: spot.distanceKm,
                               timeLimit: spot.timeLimit,
+                              hasEvCharging: spot.hasEvCharging,
+                              evChargersAvailable: spot.evChargersAvailable,
+                              evChargerType: spot.evChargerType,
                               onTap: () {
                                 Navigator.push(
                                   context,

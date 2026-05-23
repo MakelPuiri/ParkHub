@@ -14,6 +14,12 @@ class ParkingSpotModel {
   final String offPeakTimes;
   final String predictedBusyHours;
 
+  // Sprint 2 - EV charging mock data
+  final bool hasEvCharging;
+  final int evChargersAvailable;
+  final String evChargerType;
+  final String evChargingStatus;
+
   const ParkingSpotModel({
     required this.id,
     required this.name,
@@ -29,6 +35,10 @@ class ParkingSpotModel {
     required this.peakTimes,
     required this.offPeakTimes,
     required this.predictedBusyHours,
+    this.hasEvCharging = false,
+    this.evChargersAvailable = 0,
+    this.evChargerType = 'Not available',
+    this.evChargingStatus = 'No EV charging available',
   });
 
   @override

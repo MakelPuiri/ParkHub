@@ -23,6 +23,10 @@ class ParkingService {
       peakTimes: '8:00 AM - 10:00 AM, 4:00 PM - 6:00 PM',
       offPeakTimes: '11:00 AM - 3:00 PM',
       predictedBusyHours: 'Weekdays during commute hours',
+      hasEvCharging: true,
+      evChargersAvailable: 3,
+      evChargerType: 'Type 2 Fast Charger',
+      evChargingStatus: 'Mock live status: 3 chargers currently available',
     ),
     const ParkingSpotModel(
       id: '2',
@@ -39,6 +43,7 @@ class ParkingService {
       peakTimes: '12:00 PM - 2:00 PM, 5:00 PM - 7:00 PM',
       offPeakTimes: '9:30 AM - 11:30 AM',
       predictedBusyHours: 'Lunch periods and evenings',
+      
     ),
     const ParkingSpotModel(
       id: '3',
@@ -87,6 +92,10 @@ class ParkingService {
       peakTimes: '10:00 AM - 1:00 PM, 5:00 PM - 8:00 PM',
       offPeakTimes: '2:00 PM - 4:00 PM',
       predictedBusyHours: 'Weekend afternoons',
+      hasEvCharging: true,
+      evChargersAvailable: 3,
+      evChargerType: 'Type 2 Fast Charger',
+      evChargingStatus: 'Mock live status: 3 chargers currently available',
     ),
     const ParkingSpotModel(
       id: '6',
@@ -183,6 +192,10 @@ class ParkingService {
       peakTimes: '7:00 AM - 9:00 AM, 4:00 PM - 6:00 PM',
       offPeakTimes: '10:00 AM - 3:00 PM',
       predictedBusyHours: 'Weekday commute times',
+      hasEvCharging: true,
+      evChargersAvailable: 3,
+      evChargerType: 'Type 2 Fast Charger',
+      evChargingStatus: 'Mock live status: 3 chargers currently available',
     ),
     const ParkingSpotModel(
       id: '12',

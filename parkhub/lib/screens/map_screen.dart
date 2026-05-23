@@ -47,6 +47,10 @@ List<ParkingSpot> _buildDemoSpots() => [
     pricePerHour: 6.00,
     availableSpaces: 4,
     isCovered: true,
+    hasEvCharging: true,
+    evChargersAvailable: 3,
+    evChargerType: 'Type 2 Fast Charger',
+    evChargingStatus: 'Mock live status: 3 chargers currently available',
   ),
   ParkingSpot(
     id: '4',
@@ -77,6 +81,10 @@ List<ParkingSpot> _buildDemoSpots() => [
     pricePerHour: 4.50,
     availableSpaces: 42,
     isCovered: true,
+    hasEvCharging: true,
+    evChargersAvailable: 4,
+    evChargerType: 'Fast Charger',
+    evChargingStatus: 'Mock live status: 4 chargers currently available',
   ),
   ParkingSpot(
     id: '7',
@@ -127,6 +135,10 @@ List<ParkingSpot> _buildDemoSpots() => [
     pricePerHour: 2.00,
     availableSpaces: 85,
     isCovered: false,
+    hasEvCharging: true,
+    evChargersAvailable: 6,
+    evChargerType: 'Standard EV Charger',
+    evChargingStatus: 'Mock live status: 6 chargers currently available',
   ),
   ParkingSpot(
     id: '12',
@@ -277,6 +289,10 @@ List<ParkingSpot> _buildDemoSpots() => [
     pricePerHour: 6.20,
     availableSpaces: 31,
     isCovered: true,
+    hasEvCharging: true,
+    evChargersAvailable: 2,
+    evChargerType: 'Type 2 Charger',
+    evChargingStatus: 'Mock live status: 2 chargers currently available',
   ),
   ParkingSpot(
     id: '27',
@@ -297,6 +313,10 @@ List<ParkingSpot> _buildDemoSpots() => [
     pricePerHour: 5.80,
     availableSpaces: 50,
     isCovered: false,
+    hasEvCharging: true,
+    evChargersAvailable: 5,
+    evChargerType: 'Fast Charger',
+    evChargingStatus: 'Mock live status: 5 chargers currently available',
   ),
   ParkingSpot(
     id: '29',
@@ -323,7 +343,7 @@ List<ParkingSpot> _buildDemoSpots() => [
 // ---------------------------------------------------------------------------
 // Filter chip model
 // ---------------------------------------------------------------------------
-enum _Filter { cheapest, closest, available, covered }
+enum _Filter { cheapest, closest, available, covered, evCharging }
 
 // ---------------------------------------------------------------------------
 // MapScreen
@@ -450,6 +470,9 @@ class _MapScreenState extends State<MapScreen> {
     if (_activeFilters.contains(_Filter.covered)) {
       result = result.where((s) => s.isCovered).toList();
     }
+    if (_activeFilters.contains(_Filter.evCharging)) {
+      result = result.where((s) => s.hasEvCharging).toList();
+    }
     if (_activeFilters.contains(_Filter.cheapest)) {
       result.sort((a, b) => a.pricePerHour.compareTo(b.pricePerHour));
     }
@@ -575,7 +598,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
               child: Center(
                 child: Text(
-                  'P',
+                 spot.hasEvCharging ? '⚡' : 'P',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -644,6 +667,7 @@ class _MapScreenState extends State<MapScreen> {
       (_Filter.closest, 'Closest', Icons.near_me),
       (_Filter.available, 'Available Now', Icons.check_circle_outline),
       (_Filter.covered, 'Covered', Icons.garage_outlined),
+      (_Filter.evCharging, 'EV Charging', Icons.electric_bolt),
     ];
 
     return Positioned(
@@ -980,7 +1004,57 @@ class _MapScreenState extends State<MapScreen> {
                         ),
                       ],
                     ),
-
+                    if (spot.hasEvCharging) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                Icons.electric_bolt,
+                                color: Colors.green.shade800,
+                                size: 18,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'EV Charging Available',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green.shade800,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${spot.evChargersAvailable} chargers free • ${spot.evChargerType}',
+                                    style: TextStyle(
+                                      color: Colors.green.shade700,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     // Sprint 2 — Full warning banner
                     if (isFull) ...[
                       const SizedBox(height: 10),

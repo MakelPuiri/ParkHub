@@ -27,6 +27,10 @@ class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
     pricePerHour: m.pricePerHour,
     availableSpaces: m.availableSpaces,
     isCovered: false,
+    hasEvCharging: m.hasEvCharging,
+    evChargersAvailable: m.evChargersAvailable,
+    evChargerType: m.evChargerType,
+    evChargingStatus: m.evChargingStatus,
   );
 
   void _goToBooking() {
@@ -162,6 +166,54 @@ class _ParkingDetailScreenState extends State<ParkingDetailScreen> {
               label: 'Predicted busy hours',
               value: spot.predictedBusyHours,
             ),
+            if (spot.hasEvCharging) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.electric_bolt, color: Colors.green.shade700),
+                        const SizedBox(width: 8),
+                        Text(
+                          'EV Charging Available',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _DetailRow(
+                      icon: Icons.ev_station,
+                      label: 'Charger type',
+                      value: spot.evChargerType,
+                    ),
+                    const SizedBox(height: 8),
+                    _DetailRow(
+                      icon: Icons.power,
+                      label: 'Chargers available',
+                      value: '${spot.evChargersAvailable} currently free',
+                    ),
+                    const SizedBox(height: 8),
+                    _DetailRow(
+                      icon: Icons.update,
+                      label: 'Status',
+                      value: spot.evChargingStatus,
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             const Text(
               'User Reviews',

@@ -5,6 +5,8 @@ import '../models/parking_spot.dart';
 import '../models/vehicle_model.dart';
 import '../services/vehicle_service.dart';
 import '../services/auth_service.dart';
+import '../services/reward_service.dart';
+import '../app/routes.dart';
 
 // ---------------------------------------------------------------------------
 // BookingScreen
@@ -28,6 +30,8 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isProcessing = false;
   bool _paymentSuccess = false;
   late String _referenceNumber;
+  int _earnedPoints = 0;
+  bool _pointsAdded = false;
 
   // Vehicle selection
   VehicleModel? _selectedVehicle;
@@ -49,10 +53,20 @@ class _BookingScreenState extends State<BookingScreen> {
   // -------------------------------------------------------------------------
   // Mock payment
   // -------------------------------------------------------------------------
-  Future<void> _handlePayNow() async {
+    Future<void> _handlePayNow() async {
     setState(() => _isProcessing = true);
+
     // Simulate a brief network / processing delay
     await Future.delayed(const Duration(milliseconds: 1800));
+
+    if (!_pointsAdded) {
+      _earnedPoints = RewardService().addParkingActivity(
+        widget.spot,
+        _selectedDuration,
+      );
+      _pointsAdded = true;
+    }
+
     setState(() {
       _isProcessing = false;
       _paymentSuccess = true;
@@ -433,16 +447,41 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'Payment Successful',
+              'Mock Parking Activity Complete',
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Your parking has been booked.',
+              'Your simulated parking activity has been recorded.',
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
             ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.stars_rounded, color: Colors.amber.shade800),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+$_earnedPoints ParkHub points earned',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
-
             // Booking summary card
             Container(
               width: double.infinity,
@@ -521,11 +560,39 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
               ),
             ),
-          ],
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.profile,
+                    (route) => false,
+                  );
+                },
+                icon: const Icon(Icons.card_giftcard, size: 20),
+                label: const Text(
+                  'View My Rewards',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+               ),
+               style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1A7F4B),
+                side: const BorderSide(color: Color(0xFF1A7F4B)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+           ),
+         ],
         ),
       ),
     );
   }
+
 
   // ── Helper widgets ───────────────────────────────────────────────────────
 
@@ -658,3 +725,4 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 }
+

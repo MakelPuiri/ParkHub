@@ -50,6 +50,9 @@ class HomeScreen extends StatelessWidget {
                     totalSpaces: spot.totalSpaces,
                     distanceKm: spot.distanceKm,
                     timeLimit: spot.timeLimit,
+                    hasEvCharging: spot.hasEvCharging,
+                    evChargersAvailable: spot.evChargersAvailable,
+                    evChargerType: spot.evChargerType,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(

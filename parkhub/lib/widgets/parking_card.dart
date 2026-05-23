@@ -10,6 +10,12 @@ class ParkingCard extends StatelessWidget {
   final int totalSpaces;
   final double distanceKm;
   final String timeLimit;
+
+  // Sprint 2 - EV charging display
+  final bool hasEvCharging;
+  final int evChargersAvailable;
+  final String evChargerType;
+
   final VoidCallback? onTap;
 
   const ParkingCard({
@@ -22,6 +28,9 @@ class ParkingCard extends StatelessWidget {
     required this.totalSpaces,
     required this.distanceKm,
     required this.timeLimit,
+    this.hasEvCharging = false,
+    this.evChargersAvailable = 0,
+    this.evChargerType = 'Not available',
     this.onTap,
   });
 
@@ -97,6 +106,41 @@ class ParkingCard extends StatelessWidget {
                       'Time limit: $timeLimit',
                       style: const TextStyle(fontSize: 14),
                     ),
+                    if (hasEvCharging) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green.shade200),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.electric_bolt,
+                              size: 16,
+                              color: Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                'EV Charging • $evChargersAvailable available',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.green.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
