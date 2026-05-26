@@ -16,6 +16,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    themeNotifier.addListener(() {
+      setState(() {});
+    });
     final rewards = _rewardService;
     final badges = rewards.getBadges();
     final recommendations = rewards.getPersonalisedRecommendations();

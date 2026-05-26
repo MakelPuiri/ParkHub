@@ -12,6 +12,8 @@ import '../models/parking_spot.dart';
 import '../services/parking_service.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import 'booking_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // ---------------------------------------------------------------------------
 // Sprint 2 mock data — Auckland CBD parking spots
@@ -343,7 +345,14 @@ List<ParkingSpot> _buildDemoSpots() => [
 // ---------------------------------------------------------------------------
 // Filter chip model
 // ---------------------------------------------------------------------------
-enum _Filter { cheapest, closest, available, covered, evCharging }
+enum _Filter {
+  cheapest,
+  closest,
+  available,
+  covered,
+  evCharging,
+  walkingDistanceSearch,
+}
 
 // ---------------------------------------------------------------------------
 // MapScreen
@@ -373,6 +382,11 @@ class _MapScreenState extends State<MapScreen> {
   // Selected spot for the bottom info card
   ParkingSpot? _selectedSpot;
 
+  final TextEditingController _searchController = TextEditingController();
+
+  //Google Geocoding API key
+  static const String _geoApiKey = 'AIzaSyAmHDzerLbgM3oyz1THhLR2WutGlgqnFjs';
+
   // Tracks when we last refreshed (shown in detail card)
   String _lastUpdated = 'Just now';
 
@@ -392,6 +406,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -461,6 +476,32 @@ class _MapScreenState extends State<MapScreen> {
         1000;
   }
 
+  // ADD — search typed destination and sort nearest parking
+
+  Future<LatLng?> _geocodeLocation(String query) async {
+    final url = Uri.parse(
+      'https://maps.googleapis.com/maps/api/geocode/json'
+      '?address=${Uri.encodeComponent(query)}'
+      '&key=$_geoApiKey',
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      return null;
+    }
+
+    final data = json.decode(response.body);
+
+    if (data['status'] != 'OK' || data['results'].isEmpty) {
+      return null;
+    }
+
+    final loc = data['results'][0]['geometry']['location'];
+
+    return LatLng(loc['lat'], loc['lng']);
+  }
+
   void _applyFilters() {
     List<ParkingSpot> result = List.of(_allSpots);
 
@@ -484,6 +525,11 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _toggleFilter(_Filter filter) {
+    if (filter == _Filter.walkingDistanceSearch) {
+      _openSearchFilterSheet();
+      return;
+    }
+
     setState(() {
       if (_activeFilters.contains(filter)) {
         _activeFilters.remove(filter);
@@ -598,7 +644,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
               child: Center(
                 child: Text(
-                 spot.hasEvCharging ? '⚡' : 'P',
+                  spot.hasEvCharging ? '⚡' : 'P',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -660,6 +706,117 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  // ADD — search destination + show top 3 closest spots
+  void _openSearchFilterSheet() {
+    final controller = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        List<ParkingSpot> results = [];
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> search(String query) async {
+              final destination = await _geocodeLocation(query);
+
+              if (destination == null) {
+                _showMessage('Location not found');
+                return;
+              }
+
+              final sorted = List<ParkingSpot>.from(_allSpots);
+
+              sorted.sort((a, b) {
+                final dA = Geolocator.distanceBetween(
+                  destination.latitude,
+                  destination.longitude,
+                  a.latitude,
+                  a.longitude,
+                );
+
+                final dB = Geolocator.distanceBetween(
+                  destination.latitude,
+                  destination.longitude,
+                  b.latitude,
+                  b.longitude,
+                );
+
+                return dA.compareTo(dB);
+              });
+
+              setModalState(() {
+                results = sorted.take(3).toList();
+              });
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Search destination...',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: search,
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (results.isNotEmpty) ...[
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Top 3 closest parking spots',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    ...results.map((spot) {
+                      return ListTile(
+                        leading: Icon(
+                          Icons.local_parking,
+                          color: spot.getAvailabilityColor(),
+                        ),
+                        title: Text(spot.name),
+                        subtitle: Text(spot.address),
+                        onTap: () {
+                          Navigator.pop(context);
+
+                          setState(() {
+                            _selectedSpot = spot;
+                          });
+
+                          _mapController.move(
+                            LatLng(spot.latitude, spot.longitude),
+                            15,
+                          );
+                        },
+                      );
+                    }),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // Filter chips overlay
   Widget _buildFilterChips() {
     final chips = [
@@ -668,7 +825,26 @@ class _MapScreenState extends State<MapScreen> {
       (_Filter.available, 'Available Now', Icons.check_circle_outline),
       (_Filter.covered, 'Covered', Icons.garage_outlined),
       (_Filter.evCharging, 'EV Charging', Icons.electric_bolt),
+      (
+        _Filter.walkingDistanceSearch,
+        'Walking Distance Search',
+        Icons.directions_walk,
+      ),
     ];
+
+    // ADD — filter/search button
+    Positioned(
+      right: 14,
+      top: MediaQuery.of(context).padding.top + 120,
+      child: FloatingActionButton(
+        heroTag: 'filter_search_fab',
+        mini: true,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1A7F4B),
+        onPressed: _openSearchFilterSheet,
+        child: const Icon(Icons.tune),
+      ),
+    );
 
     return Positioned(
       top: MediaQuery.of(context).padding.top + 68,
