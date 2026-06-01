@@ -5,6 +5,7 @@ import '../services/parking_service.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/parking_card.dart';
 import '../screens/parking_detail_screen.dart';
+import '../screens/notification_settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -21,7 +22,15 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                    const NotificationSettingsScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),

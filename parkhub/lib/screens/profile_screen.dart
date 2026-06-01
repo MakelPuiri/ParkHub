@@ -14,11 +14,27 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final RewardService _rewardService = RewardService();
 
+  late VoidCallback _themeListener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _themeListener = () {
+      setState(() {});
+    };
+
+    themeNotifier.addListener(_themeListener);
+  }
+
+  @override
+  void dispose() {
+    themeNotifier.removeListener(_themeListener);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    themeNotifier.addListener(() {
-      setState(() {});
-    });
     final rewards = _rewardService;
     final badges = rewards.getBadges();
     final recommendations = rewards.getPersonalisedRecommendations();
@@ -93,15 +109,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             builder: (context, ThemeMode currentMode, child) {
               final bool isDark = currentMode == ThemeMode.dark;
               return ListTile(
-                leading: Icon(
-                  isDark ? Icons.dark_mode : Icons.light_mode,
-                ),
+                leading: Icon(isDark ? Icons.dark_mode : Icons.light_mode),
                 title: const Text('Dark Mode'),
                 trailing: Switch(
                   value: isDark,
                   onChanged: (value) {
-                    themeNotifier.value =
-                        value ? ThemeMode.dark : ThemeMode.light;
+                    themeNotifier.value = value
+                        ? ThemeMode.dark
+                        : ThemeMode.light;
                   },
                 ),
               );
@@ -226,9 +241,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: badge.unlocked
-                        ? Colors.green.shade50
-                        : Colors.grey.shade100,
+                        ? (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green.shade900.withOpacity(0.25)
+                              : Colors.green.shade50)
+                        : (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade100),
                     borderRadius: BorderRadius.circular(16),
+
+                    boxShadow: badge.unlocked
+                        ? [
+                            BoxShadow(
+                              color: Colors.greenAccent.withOpacity(0.3),
+                              blurRadius: 18,
+                              spreadRadius: 1.5,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+
                     border: Border.all(
                       color: badge.unlocked
                           ? Colors.green.shade200
@@ -236,31 +273,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        badge.emoji,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      const Spacer(),
-                      Text(
-                        badge.name,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: badge.unlocked
-                              ? Colors.green.shade900
-                              : Colors.grey.shade700,
+                      Center(
+                        child: Text(
+                          badge.emoji,
+                          style: TextStyle(
+                            fontSize: 42,
+                            shadows: badge.unlocked
+                                ? [
+                                    const Shadow(
+                                      blurRadius: 10,
+                                      color: Colors.greenAccent,
+                                    ),
+                                  ]
+                                : [],
+                          ),
                         ),
                       ),
+
+                      const SizedBox(height: 6), 
+
+                      Center(
+                        child: Text(
+                          badge.name,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: badge.unlocked
+                                ? (Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.greenAccent
+                                      : Colors.green.shade900)
+                                : Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+
                       const SizedBox(height: 2),
-                      Text(
-                        badge.unlocked ? 'Unlocked' : badge.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey.shade600,
+
+                      Center(
+                        child: Text(
+                          badge.unlocked ? 'Unlocked' : badge.description,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: badge.unlocked
+                                ? (Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black)
+                                : Colors.grey.shade500,
+                          ),
                         ),
                       ),
                     ],
@@ -303,7 +371,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.blueGrey.shade900
+                    : Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Colors.blue.shade100),
               ),
@@ -321,7 +391,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       recommendation,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue.shade900,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : Colors.blue.shade900,
                         height: 1.3,
                       ),
                     ),
@@ -350,12 +422,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   BoxDecoration _sectionDecoration() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return BoxDecoration(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+
       borderRadius: BorderRadius.circular(20),
+
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.06),
+          color: isDark
+              ? Colors.black.withOpacity(0.4)
+              : Colors.black.withOpacity(0.06),
+
           blurRadius: 14,
           offset: const Offset(0, 5),
         ),

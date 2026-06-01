@@ -7,7 +7,7 @@ import '../screens/map_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/favourites_screen.dart';
 import '../screens/register_screen.dart';
-import '../screens/vehicles_screen.dart'; // NEW
+import '../screens/vehicles_screen.dart'; 
 import '../themes/theme_controller.dart';
 
 class ParkHubApp extends StatelessWidget {
@@ -45,7 +45,7 @@ class ParkHubApp extends StatelessWidget {
             AppRoutes.profile: (context) => const ProfileScreen(),
             AppRoutes.favourites: (context) => const FavouritesScreen(),
             AppRoutes.register: (context) => const RegisterScreen(),
-            AppRoutes.vehicles: (context) => const VehiclesScreen(), // NEW
+            AppRoutes.vehicles: (context) => const VehiclesScreen(),
           },
         );
       },

@@ -1,12 +1,14 @@
-
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:parkhub/models/notifications_types.dart';
+import 'package:parkhub/services/in_app_notification_service.dart';
 import '../models/parking_spot.dart';
 import '../models/vehicle_model.dart';
 import '../services/vehicle_service.dart';
 import '../services/auth_service.dart';
 import '../services/reward_service.dart';
 import '../app/routes.dart';
+import '../services/notification_service.dart';
 
 // ---------------------------------------------------------------------------
 // BookingScreen
@@ -32,6 +34,7 @@ class _BookingScreenState extends State<BookingScreen> {
   late String _referenceNumber;
   int _earnedPoints = 0;
   bool _pointsAdded = false;
+  bool _bookingNotificationShown = false;
 
   // Vehicle selection
   VehicleModel? _selectedVehicle;
@@ -53,10 +56,9 @@ class _BookingScreenState extends State<BookingScreen> {
   // -------------------------------------------------------------------------
   // Mock payment
   // -------------------------------------------------------------------------
-    Future<void> _handlePayNow() async {
+  Future<void> _handlePayNow() async {
     setState(() => _isProcessing = true);
 
-    // Simulate a brief network / processing delay
     await Future.delayed(const Duration(milliseconds: 1800));
 
     if (!_pointsAdded) {
@@ -65,12 +67,92 @@ class _BookingScreenState extends State<BookingScreen> {
         _selectedDuration,
       );
       _pointsAdded = true;
+
+      InAppNotificationService.show(
+        context,
+        title: 'Reward Earned',
+        message: '+$_earnedPoints ParkHub points earned',
+        icon: Icons.stars_rounded,
+        color: Colors.amber.shade700,
+      );
     }
 
     setState(() {
       _isProcessing = false;
       _paymentSuccess = true;
     });
+
+    InAppNotificationService.show(
+      context,
+      title: 'Booking Confirmed',
+      message:
+          '${widget.spot.name} booked for $_selectedDuration hour${_selectedDuration > 1 ? 's' : ''}',
+      icon: Icons.check_circle,
+      color: const Color(0xFF1A7F4B),
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          elevation: 8,
+          duration: const Duration(seconds: 4),
+          backgroundColor: const Color(0xFF1A7F4B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 26),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Booking Confirmed',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '${widget.spot.name} booked successfully',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          //Action Button to extend booking (for demo purposes)
+          action: SnackBarAction(
+            label: 'Extend',
+            textColor: Colors.white,
+            onPressed: () {
+              // Example: extend booking by 1 hour
+              setState(() {
+                _selectedDuration += 1;
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Booking extended by 1 hour'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -222,17 +304,22 @@ class _BookingScreenState extends State<BookingScreen> {
                       isExpanded: true,
                       hint: const Text('Choose your vehicle'),
                       items: vehicles
-                          .map((v) => DropdownMenuItem(
-                                value: v,
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.directions_car,
-                                        size: 18, color: Color(0xFF1A7F4B)),
-                                    const SizedBox(width: 8),
-                                    Text('${v.label} — ${v.plateNumber}'),
-                                  ],
-                                ),
-                              ))
+                          .map(
+                            (v) => DropdownMenuItem(
+                              value: v,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.directions_car,
+                                    size: 18,
+                                    color: Color(0xFF1A7F4B),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text('${v.label} — ${v.plateNumber}'),
+                                ],
+                              ),
+                            ),
+                          )
                           .toList(),
                       onChanged: (v) => setState(() => _selectedVehicle = v),
                     ),
@@ -576,23 +663,22 @@ class _BookingScreenState extends State<BookingScreen> {
                 label: const Text(
                   'View My Rewards',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-               ),
-               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF1A7F4B),
-                side: const BorderSide(color: Color(0xFF1A7F4B)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF1A7F4B),
+                  side: const BorderSide(color: Color(0xFF1A7F4B)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
-           ),
-         ],
+          ],
         ),
       ),
     );
   }
-
 
   // ── Helper widgets ───────────────────────────────────────────────────────
 
@@ -725,4 +811,3 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 }
-
