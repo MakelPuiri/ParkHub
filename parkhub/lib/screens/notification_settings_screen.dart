@@ -13,6 +13,7 @@ class NotificationSettingsScreen extends StatelessWidget {
         children: [
           // ───────── Booking Confirmed ─────────
           _testButton(
+            context: context,
             icon: Icons.check_circle,
             color: Colors.green,
             title: 'Booking Confirmed',
@@ -32,6 +33,7 @@ class NotificationSettingsScreen extends StatelessWidget {
 
           // ───────── Parking Ending ─────────
           _testButton(
+            context: context,
             icon: Icons.timer,
             color: Colors.orange,
             title: 'Parking Ending Soon',
@@ -65,6 +67,7 @@ class NotificationSettingsScreen extends StatelessWidget {
 
           // ───────── Expired ─────────
           _testButton(
+            context: context,
             icon: Icons.warning,
             color: Colors.red,
             title: 'Session Expired',
@@ -84,6 +87,7 @@ class NotificationSettingsScreen extends StatelessWidget {
 
           // ───────── Reward ─────────
           _testButton(
+            context: context,
             icon: Icons.star,
             color: Colors.amber,
             title: 'Reward Earned',
@@ -103,6 +107,7 @@ class NotificationSettingsScreen extends StatelessWidget {
 
           // ───────── Nearby Spot ─────────
           _testButton(
+            context: context,
             icon: Icons.local_parking,
             color: Colors.blue,
             title: 'Nearby Spot Available',
@@ -128,6 +133,7 @@ class NotificationSettingsScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
     return InkWell(
       onTap: onTap,
@@ -135,11 +141,18 @@ class NotificationSettingsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
+
           borderRadius: BorderRadius.circular(16),
+
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withOpacity(0.4)
+                  : Colors.black.withOpacity(0.05),
+
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -150,7 +163,9 @@ class NotificationSettingsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? color.withOpacity(0.2)
+                    : color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color),
@@ -163,21 +178,34 @@ class NotificationSettingsScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const Icon(Icons.chevron_right),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white54
+                  : Colors.black54,
+            ),
           ],
         ),
       ),
